@@ -38,8 +38,8 @@ public final class BluPs2HomeActivity extends Activity {
         header.setOrientation(LinearLayout.HORIZONTAL);
         TextView logo = text("BluPS2", 28, Color.WHITE, true);
         header.addView(logo, new LinearLayout.LayoutParams(0, dp(52), 1f));
-        header.addView(action("⌕", null));
-        header.addView(action("▦", null));
+        header.addView(action("⌕", v -> openLibrary()));
+        header.addView(action("▦", v -> openTools()));
         header.addView(action("+", v -> openLibrary()));
         root.addView(header);
 
@@ -56,8 +56,8 @@ public final class BluPs2HomeActivity extends Activity {
         coverRow.setOrientation(LinearLayout.HORIZONTAL);
         coverRow.setPadding(0, dp(10), 0, dp(10));
         coverRow.addView(gameCard("Add your PS2 games", "ISO / BIN / CSO"));
-        coverRow.addView(gameCard("Recently played", "Your latest titles"));
-        coverRow.addView(gameCard("Favorites", "Pinned games"));
+        coverRow.addView(gameCard("Recently played", "Open Play library history"));
+        coverRow.addView(gameCard("Favorites", "Your pinned titles"));
         coverRow.addView(gameCard("Homebrew", "ELF titles"));
         covers.addView(coverRow);
         root.addView(covers, new LinearLayout.LayoutParams(-1, 0, 1f));
@@ -66,20 +66,26 @@ public final class BluPs2HomeActivity extends Activity {
         actions.setOrientation(LinearLayout.HORIZONTAL);
         Button add = button("Add Games");
         add.setOnClickListener(v -> openLibrary());
-        Button refresh = button("Refresh");
-        refresh.setOnClickListener(v -> openLibrary());
+        Button tools = button("Performance Hub");
+        tools.setOnClickListener(v -> openTools());
         actions.addView(add, new LinearLayout.LayoutParams(0, dp(48), 1f));
         LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(0, dp(48), 1f);
         rp.setMargins(dp(10), 0, 0, 0);
-        actions.addView(refresh, rp);
+        actions.addView(tools, rp);
         root.addView(actions);
+
+        DeviceTelemetry.BatteryState battery = DeviceTelemetry.readBattery(this);
+        float temp = DeviceTelemetry.readTemperatureC(battery.temperatureC);
+        int target = getSharedPreferences("blups2_tools", MODE_PRIVATE).getInt("target_fps", 60);
+        String batteryText = battery.percent < 0 ? "?" : battery.percent + "%";
+        String tempText = Float.isNaN(temp) ? "?" : String.format(java.util.Locale.UK, "%.1f°C", temp);
 
         LinearLayout stats = new LinearLayout(this);
         stats.setOrientation(LinearLayout.HORIZONTAL);
         stats.setPadding(0, dp(12), 0, dp(10));
-        stats.addView(stat("FPS", "60"), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        stats.addView(stat("TEMP", "AUTO"), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        stats.addView(stat("BATTERY", "LIVE"), new LinearLayout.LayoutParams(0, dp(76), 1f));
+        stats.addView(stat("TARGET", target + " FPS"), new LinearLayout.LayoutParams(0, dp(76), 1f));
+        stats.addView(stat("TEMP", tempText), new LinearLayout.LayoutParams(0, dp(76), 1f));
+        stats.addView(stat("BATTERY", batteryText), new LinearLayout.LayoutParams(0, dp(76), 1f));
         stats.addView(stat("PROFILE", "MACCA"), new LinearLayout.LayoutParams(0, dp(76), 1f));
         root.addView(stats);
 
@@ -87,16 +93,15 @@ public final class BluPs2HomeActivity extends Activity {
         nav.setOrientation(LinearLayout.HORIZONTAL);
         nav.setGravity(Gravity.CENTER);
         nav.addView(nav("Library", true, v -> openLibrary()));
-        nav.addView(nav("Games", false, v -> openLibrary()));
+        nav.addView(nav("Tools", false, v -> openTools()));
         nav.addView(nav("Settings", false, v -> startActivity(new Intent(this, SettingsActivity.class))));
         nav.addView(nav("Profiles", false, v -> startActivity(new Intent(this, BluPs2ProfilesActivity.class))));
         root.addView(nav);
         return root;
     }
 
-    private void openLibrary() {
-        startActivity(new Intent(this, MainActivity.class));
-    }
+    private void openLibrary() { startActivity(new Intent(this, MainActivity.class)); }
+    private void openTools() { startActivity(new Intent(this, BluPs2ToolsActivity.class)); }
 
     private View gameCard(String title, String sub) {
         LinearLayout box = new LinearLayout(this);
@@ -106,10 +111,8 @@ public final class BluPs2HomeActivity extends Activity {
         TextView art = text("PS2", 30, BLUE, true);
         art.setGravity(Gravity.CENTER);
         box.addView(art, new LinearLayout.LayoutParams(dp(145), dp(118)));
-        TextView t = text(title, 14, Color.WHITE, true);
-        box.addView(t);
-        TextView s = text(sub, 11, MUTED, false);
-        box.addView(s);
+        box.addView(text(title, 14, Color.WHITE, true));
+        box.addView(text(sub, 11, MUTED, false));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(175), dp(190));
         lp.setMargins(0, 0, dp(10), 0);
         box.setLayoutParams(lp);
@@ -179,7 +182,5 @@ public final class BluPs2HomeActivity extends Activity {
         return g;
     }
 
-    private int dp(int value) {
-        return Math.round(value * getResources().getDisplayMetrics().density);
-    }
+    private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 }
