@@ -1,0 +1,127 @@
+name: Publish BluPS2 Public Alpha 1.0
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-public-alpha-1.0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout BluPS2
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK and CMake
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;29.0.14206865" "cmake;3.31.1"
+
+      - name: Clone Play PS2 core
+        run: |
+          git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
+
+      - name: Apply BluPS2 Public Alpha 1.0 UI and tools
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+
+          root = Path('play-core')
+          android = root / 'build_android'
+          java_dir = root / 'Source/ui_android/java/com/virtualapplications/play'
+
+          for name in ['DeviceTelemetry.java', 'BluPs2DashboardView.java', 'BluPs2SplashActivity.java', 'BluPs2ProfilesActivity.java', 'BluPs2HomeActivity.java', 'BluPs2ToolsActivity.java']:
+              shutil.copy2(Path('patches') / name, java_dir / name)
+
+          gradle = android / 'build.gradle'
+          text = gradle.read_text()
+          text = text.replace("versionName gitVersionName", "versionName '1.0-public-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
+          gradle.write_text(text)
+
+          strings = android / 'src/main/res/values/strings.xml'
+          text = strings.read_text()
+          text = re.sub(r'(<string\s+name="app_name"[^>]*>).*?(</string>)', r'\1BluPS2\2', text, count=1)
+          strings.write_text(text)
+
+          manifest = android / 'src/main/AndroidManifest.xml'
+          text = manifest.read_text()
+          text = text.replace('\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n', '', 1)
+          text = text.replace('\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n', '', 1)
+          splash = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n'''
+          text = text.replace('    </application>', splash + '    </application>', 1)
+          manifest.write_text(text)
+          PY
+
+      - name: Build ARM64 BluPS2 APK
+        working-directory: play-core/build_android
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/29.0.14206865
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Prepare public APK
+        run: |
+          APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          test -n "$APK"
+          cp "$APK" BluPS2-Public-Alpha-1.0-arm64.apk
+
+      - name: Write release notes
+        run: |
+          cat > RELEASE_NOTES_PUBLIC_ALPHA_1.0.md <<'EOF'
+          # BluPS2 Public Alpha 1.0
+
+          First public Alpha release of BluPS2 for ARM64 Android devices.
+
+          Included in this release:
+          - PS2 emulation powered by the Play! core
+          - BluPS2 blue game-library interface
+          - Add Games and Refresh shortcuts
+          - Recent and Favorites sections
+          - Profiles
+          - Controller settings shortcut
+          - Controller vibration test
+          - Performance Hub
+          - 30 FPS and 60 FPS target presets
+          - Live battery percentage
+          - Device temperature display where supported
+          - Android thermal-status display and Smart Heat Guard information
+          - Landscape handheld interface
+
+          This is an early Alpha. Game compatibility, graphics, audio, controls and performance vary between titles and devices.
+
+          Use your own legally dumped PS2 game files. BluPS2 does not include PS2 games or copyrighted Sony system software.
+
+          BluPS2 uses the open-source Play! PS2 emulator core by jpd002 and contributors under the BSD 2-Clause licence.
+          EOF
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0-public-alpha >/dev/null 2>&1; then
+            gh release upload v1.0-public-alpha BluPS2-Public-Alpha-1.0-arm64.apk --clobber
+            gh release edit v1.0-public-alpha --title "BluPS2 Public Alpha 1.0" --notes-file RELEASE_NOTES_PUBLIC_ALPHA_1.0.md
+          else
+            gh release create v1.0-public-alpha BluPS2-Public-Alpha-1.0-arm64.apk \
+              --title "BluPS2 Public Alpha 1.0" \
+              --notes-file RELEASE_NOTES_PUBLIC_ALPHA_1.0.md \
+              --target "$GITHUB_SHA"
+          fi
