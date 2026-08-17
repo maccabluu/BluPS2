@@ -45,7 +45,7 @@ public final class BluPs2SplashActivity extends Activity {
 
         setContentView(root);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Intent i = new Intent(this, MainActivity.class);
+            Intent i = new Intent(this, BluPs2HomeActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
             finish();
