@@ -1,4 +1,4 @@
-name: Build BluPS2 APK
+name: Build BluPS2 Play Core APK
 
 on:
   push:
@@ -8,19 +8,65 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout BluPS2
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-      - name: Build debug APK
-        run: gradle assembleDebug
-      - name: Upload APK
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK and CMake
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;29.0.14206865" "cmake;3.31.1"
+
+      - name: Clone Play PS2 core
+        run: |
+          git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
+
+      - name: Apply BluPS2 Android branding
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          gradle = Path('play-core/build_android/build.gradle')
+          text = gradle.read_text()
+          text = text.replace("versionName gitVersionName", "versionName gitVersionName\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
+          gradle.write_text(text)
+
+          strings = Path('play-core/build_android/src/main/res/values/strings.xml')
+          text = strings.read_text()
+          import re
+          text = re.sub(r'(<string\s+name="app_name"[^>]*>).*?(</string>)', r'\1BluPS2\2', text, count=1)
+          strings.write_text(text)
+          PY
+
+      - name: Build ARM64 BluPS2 APK with Play core
+        working-directory: play-core/build_android
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/29.0.14206865
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Prepare APK
+        run: |
+          APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          test -n "$APK"
+          cp "$APK" BluPS2-0.2-alpha-play-core-arm64.apk
+
+      - name: Upload BluPS2 APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluPS2-alpha-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: BluPS2-0.2-alpha-play-core-arm64
+          path: BluPS2-0.2-alpha-play-core-arm64.apk
+          if-no-files-found: error
