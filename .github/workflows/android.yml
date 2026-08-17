@@ -1,4 +1,4 @@
-name: Build BluPS2 0.5 Alpha
+name: Build BluPS2 Public Alpha 1.0
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
         run: |
           git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
 
-      - name: Apply BluPS2 0.5 UI and tools
+      - name: Apply BluPS2 Public Alpha 1.0 UI and tools
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -47,7 +47,7 @@ jobs:
 
           gradle = android / 'build.gradle'
           text = gradle.read_text()
-          text = text.replace("versionName gitVersionName", "versionName '0.5-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("versionName gitVersionName", "versionName '1.0-public-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
           text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
           gradle.write_text(text)
 
@@ -73,15 +73,15 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Prepare APK
+      - name: Prepare public APK
         run: |
           APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
           test -n "$APK"
-          cp "$APK" BluPS2-0.5-alpha-arm64.apk
+          cp "$APK" BluPS2-Public-Alpha-1.0-arm64.apk
 
-      - name: Upload BluPS2 APK
+      - name: Upload BluPS2 Public Alpha 1.0 APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluPS2-0.5-alpha-arm64
-          path: BluPS2-0.5-alpha-arm64.apk
+          name: BluPS2-Public-Alpha-1.0-arm64
+          path: BluPS2-Public-Alpha-1.0-arm64.apk
           if-no-files-found: error
