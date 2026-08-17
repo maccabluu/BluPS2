@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 public final class BluPs2HomeActivity extends Activity {
@@ -99,7 +98,7 @@ public final class BluPs2HomeActivity extends Activity {
         startActivity(new Intent(this, MainActivity.class));
     }
 
-    private TextView gameCard(String title, String sub) {
+    private View gameCard(String title, String sub) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setPadding(dp(14), dp(14), dp(14), dp(14));
