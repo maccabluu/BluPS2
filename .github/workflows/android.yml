@@ -1,4 +1,4 @@
-name: Build BluPS2 0.3 Alpha
+name: Build BluPS2 0.4 Alpha
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
         run: |
           git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
 
-      - name: Apply BluPS2 0.3 features
+      - name: Apply BluPS2 0.4 photo-style UI
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -42,12 +42,12 @@ jobs:
           android = root / 'build_android'
           java_dir = root / 'Source/ui_android/java/com/virtualapplications/play'
 
-          for name in ['DeviceTelemetry.java', 'BluPs2DashboardView.java', 'BluPs2SplashActivity.java', 'BluPs2ProfilesActivity.java']:
+          for name in ['DeviceTelemetry.java', 'BluPs2DashboardView.java', 'BluPs2SplashActivity.java', 'BluPs2ProfilesActivity.java', 'BluPs2HomeActivity.java']:
               shutil.copy2(Path('patches') / name, java_dir / name)
 
           gradle = android / 'build.gradle'
           text = gradle.read_text()
-          text = text.replace("versionName gitVersionName", "versionName '0.3-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("versionName gitVersionName", "versionName '0.4-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
           text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
           gradle.write_text(text)
 
@@ -56,19 +56,11 @@ jobs:
           text = re.sub(r'(<string\s+name="app_name"[^>]*>).*?(</string>)', r'\1BluPS2\2', text, count=1)
           strings.write_text(text)
 
-          main_java = java_dir / 'MainActivity.java'
-          text = main_java.read_text()
-          marker = '\t\ttoolbar = findViewById(R.id.main_toolbar);'
-          inject = '''\t\tLinearLayout bluContent = findViewById(R.id.content_frame);\n\t\tif(bluContent != null) {\n\t\t\tbluContent.addView(new BluPs2DashboardView(this), 0);\n\t\t}\n\n'''
-          if marker in text and 'new BluPs2DashboardView' not in text:
-              text = text.replace(marker, inject + marker, 1)
-          main_java.write_text(text)
-
           manifest = android / 'src/main/AndroidManifest.xml'
           text = manifest.read_text()
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n', '', 1)
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n', '', 1)
-          splash = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n'''
+          splash = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n'''
           text = text.replace('    </application>', splash + '    </application>', 1)
           manifest.write_text(text)
           PY
@@ -85,11 +77,11 @@ jobs:
         run: |
           APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
           test -n "$APK"
-          cp "$APK" BluPS2-0.3-alpha-arm64.apk
+          cp "$APK" BluPS2-0.4-alpha-arm64.apk
 
       - name: Upload BluPS2 APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluPS2-0.3-alpha-arm64
-          path: BluPS2-0.3-alpha-arm64.apk
+          name: BluPS2-0.4-alpha-arm64
+          path: BluPS2-0.4-alpha-arm64.apk
           if-no-files-found: error
