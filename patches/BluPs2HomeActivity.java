@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public final class BluPs2HomeActivity extends Activity {
@@ -24,43 +25,50 @@ public final class BluPs2HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
+        setTitle("BluPS2");
         setContentView(buildUi());
     }
 
     private View buildUi() {
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(BG);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(18), dp(14), dp(18), dp(14));
+        root.setPadding(dp(16), dp(10), dp(16), dp(16));
         root.setBackgroundColor(BG);
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setOrientation(LinearLayout.HORIZONTAL);
-        TextView logo = text("BluPS2", 28, Color.WHITE, true);
-        header.addView(logo, new LinearLayout.LayoutParams(0, dp(52), 1f));
+        TextView logo = text("BluPS2", 27, Color.WHITE, true);
+        header.addView(logo, new LinearLayout.LayoutParams(0, dp(48), 1f));
         header.addView(action("⌕", v -> openLibrary()));
         header.addView(action("▦", v -> openTools()));
         header.addView(action("+", v -> openLibrary()));
-        root.addView(header);
+        root.addView(header, new LinearLayout.LayoutParams(-1, dp(48)));
 
         LinearLayout tabs = new LinearLayout(this);
         tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.setGravity(Gravity.CENTER_VERTICAL);
         tabs.addView(tab("All Games", true));
         tabs.addView(tab("Recent", false));
         tabs.addView(tab("Favorites", false));
-        root.addView(tabs);
+        root.addView(tabs, new LinearLayout.LayoutParams(-1, dp(44)));
 
         HorizontalScrollView covers = new HorizontalScrollView(this);
         covers.setHorizontalScrollBarEnabled(false);
         LinearLayout coverRow = new LinearLayout(this);
         coverRow.setOrientation(LinearLayout.HORIZONTAL);
-        coverRow.setPadding(0, dp(10), 0, dp(10));
-        coverRow.addView(gameCard("Add your PS2 games", "ISO / BIN / CSO"));
-        coverRow.addView(gameCard("Recently played", "Open Play library history"));
-        coverRow.addView(gameCard("Favorites", "Your pinned titles"));
+        coverRow.setPadding(0, dp(8), 0, dp(8));
+        coverRow.addView(gameCard("Add PS2 games", "ISO, BIN, CSO"));
+        coverRow.addView(gameCard("Recently played", "Latest titles"));
+        coverRow.addView(gameCard("Favorites", "Pinned titles"));
         coverRow.addView(gameCard("Homebrew", "ELF titles"));
         covers.addView(coverRow);
-        root.addView(covers, new LinearLayout.LayoutParams(-1, 0, 1f));
+        root.addView(covers, new LinearLayout.LayoutParams(-1, dp(202)));
 
         LinearLayout actions = new LinearLayout(this);
         actions.setOrientation(LinearLayout.HORIZONTAL);
@@ -68,11 +76,11 @@ public final class BluPs2HomeActivity extends Activity {
         add.setOnClickListener(v -> openLibrary());
         Button tools = button("Performance Hub");
         tools.setOnClickListener(v -> openTools());
-        actions.addView(add, new LinearLayout.LayoutParams(0, dp(48), 1f));
-        LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(0, dp(48), 1f);
-        rp.setMargins(dp(10), 0, 0, 0);
+        actions.addView(add, new LinearLayout.LayoutParams(0, dp(46), 1f));
+        LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(0, dp(46), 1f);
+        rp.setMargins(dp(8), 0, 0, 0);
         actions.addView(tools, rp);
-        root.addView(actions);
+        root.addView(actions, new LinearLayout.LayoutParams(-1, dp(46)));
 
         DeviceTelemetry.BatteryState battery = DeviceTelemetry.readBattery(this);
         float temp = DeviceTelemetry.readTemperatureC(battery.temperatureC);
@@ -82,12 +90,12 @@ public final class BluPs2HomeActivity extends Activity {
 
         LinearLayout stats = new LinearLayout(this);
         stats.setOrientation(LinearLayout.HORIZONTAL);
-        stats.setPadding(0, dp(12), 0, dp(10));
-        stats.addView(stat("TARGET", target + " FPS"), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        stats.addView(stat("TEMP", tempText), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        stats.addView(stat("BATTERY", batteryText), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        stats.addView(stat("PROFILE", "MACCA"), new LinearLayout.LayoutParams(0, dp(76), 1f));
-        root.addView(stats);
+        stats.setPadding(0, dp(10), 0, dp(8));
+        stats.addView(stat("TARGET", target + " FPS"), statParams());
+        stats.addView(stat("TEMP", tempText), statParams());
+        stats.addView(stat("BATTERY", batteryText), statParams());
+        stats.addView(stat("PROFILE", "MACCA"), statParams());
+        root.addView(stats, new LinearLayout.LayoutParams(-1, dp(88)));
 
         LinearLayout nav = new LinearLayout(this);
         nav.setOrientation(LinearLayout.HORIZONTAL);
@@ -96,62 +104,75 @@ public final class BluPs2HomeActivity extends Activity {
         nav.addView(nav("Tools", false, v -> openTools()));
         nav.addView(nav("Settings", false, v -> startActivity(new Intent(this, SettingsActivity.class))));
         nav.addView(nav("Profiles", false, v -> startActivity(new Intent(this, BluPs2ProfilesActivity.class))));
-        root.addView(nav);
-        return root;
+        root.addView(nav, new LinearLayout.LayoutParams(-1, dp(50)));
+
+        return scroll;
     }
 
-    private void openLibrary() { startActivity(new Intent(this, MainActivity.class)); }
+    private LinearLayout.LayoutParams statParams() {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(70), 1f);
+        lp.setMargins(dp(3), 0, dp(3), 0);
+        return lp;
+    }
+
+    private void openLibrary() { startActivity(new Intent(this, BluPs2LibraryActivity.class)); }
     private void openTools() { startActivity(new Intent(this, BluPs2ToolsActivity.class)); }
 
     private View gameCard(String title, String sub) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(dp(14), dp(14), dp(14), dp(14));
+        box.setPadding(dp(12), dp(10), dp(12), dp(10));
         box.setBackground(round(PANEL_2, dp(12), Color.rgb(25, 70, 115)));
-        TextView art = text("PS2", 30, BLUE, true);
+
+        TextView art = text("PS2", 28, BLUE, true);
         art.setGravity(Gravity.CENTER);
-        box.addView(art, new LinearLayout.LayoutParams(dp(145), dp(118)));
-        box.addView(text(title, 14, Color.WHITE, true));
-        box.addView(text(sub, 11, MUTED, false));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(175), dp(190));
-        lp.setMargins(0, 0, dp(10), 0);
+        box.addView(art, new LinearLayout.LayoutParams(-1, dp(105)));
+
+        TextView titleView = text(title, 13, Color.WHITE, true);
+        titleView.setMaxLines(1);
+        box.addView(titleView, new LinearLayout.LayoutParams(-1, dp(28)));
+
+        TextView subView = text(sub, 10, MUTED, false);
+        subView.setMaxLines(1);
+        box.addView(subView, new LinearLayout.LayoutParams(-1, dp(24)));
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(165), dp(176));
+        lp.setMargins(0, 0, dp(9), 0);
         box.setLayoutParams(lp);
         box.setOnClickListener(v -> openLibrary());
         return box;
     }
 
     private TextView stat(String label, String value) {
-        TextView v = text(label + "\n" + value, 13, Color.WHITE, true);
+        TextView v = text(label + "\n" + value, 12, Color.WHITE, true);
         v.setGravity(Gravity.CENTER);
+        v.setMaxLines(2);
         v.setBackground(round(PANEL, dp(10), Color.rgb(28, 66, 103)));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1f);
-        lp.setMargins(dp(3), 0, dp(3), 0);
-        v.setLayoutParams(lp);
         return v;
     }
 
     private TextView tab(String label, boolean active) {
-        TextView v = text(label, 13, active ? Color.WHITE : MUTED, active);
+        TextView v = text(label, 12, active ? Color.WHITE : MUTED, active);
         v.setGravity(Gravity.CENTER);
-        v.setPadding(dp(18), dp(8), dp(18), dp(8));
+        v.setPadding(dp(14), dp(6), dp(14), dp(6));
         if(active) v.setBackground(round(Color.rgb(0, 67, 135), dp(8), BLUE));
         return v;
     }
 
     private TextView nav(String label, boolean active, View.OnClickListener listener) {
-        TextView v = text(label, 12, active ? BLUE : MUTED, active);
+        TextView v = text(label, 11, active ? BLUE : MUTED, active);
         v.setGravity(Gravity.CENTER);
         v.setOnClickListener(listener);
-        v.setPadding(dp(8), dp(12), dp(8), dp(12));
+        v.setPadding(dp(4), dp(8), dp(4), dp(8));
         v.setLayoutParams(new LinearLayout.LayoutParams(0, dp(48), 1f));
         return v;
     }
 
     private TextView action(String label, View.OnClickListener listener) {
-        TextView v = text(label, 24, Color.WHITE, false);
+        TextView v = text(label, 22, Color.WHITE, false);
         v.setGravity(Gravity.CENTER);
-        v.setPadding(dp(8), 0, dp(8), 0);
-        if(listener != null) v.setOnClickListener(listener);
+        v.setPadding(dp(7), 0, dp(7), 0);
+        v.setOnClickListener(listener);
         return v;
     }
 
@@ -159,8 +180,9 @@ public final class BluPs2HomeActivity extends Activity {
         Button b = new Button(this);
         b.setText(label);
         b.setTextColor(Color.WHITE);
-        b.setTextSize(13);
+        b.setTextSize(12);
         b.setAllCaps(false);
+        b.setPadding(dp(6), 0, dp(6), 0);
         b.setBackground(round(PANEL_2, dp(10), Color.rgb(29, 72, 116)));
         return b;
     }
