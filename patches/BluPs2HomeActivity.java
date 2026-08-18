@@ -27,6 +27,7 @@ public final class BluPs2HomeActivity extends Activity {
         getWindow().setNavigationBarColor(BG);
         setTitle("BluPS2");
         setContentView(buildUi());
+        BluPs2UpdateChecker.automatic(this);
     }
 
     private View buildUi() {
@@ -102,7 +103,7 @@ public final class BluPs2HomeActivity extends Activity {
         nav.setGravity(Gravity.CENTER);
         nav.addView(nav("Library", true, v -> openLibrary()));
         nav.addView(nav("Tools", false, v -> openTools()));
-        nav.addView(nav("Settings", false, v -> startActivity(new Intent(this, SettingsActivity.class))));
+        nav.addView(nav("Settings", false, v -> startActivity(new Intent(this, BluPs2AppSettingsActivity.class))));
         nav.addView(nav("Profiles", false, v -> startActivity(new Intent(this, BluPs2ProfilesActivity.class))));
         root.addView(nav, new LinearLayout.LayoutParams(-1, dp(50)));
 
