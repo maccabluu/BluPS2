@@ -1,4 +1,4 @@
-name: Build BluPS2 1.4 Alpha
+name: Build BluPS2 1.5 Alpha
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
         run: |
           git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
 
-      - name: Apply BluPS2 1.4 Alpha UI, library and updater
+      - name: Apply BluPS2 1.5 Alpha UI, library and updater
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -57,7 +57,7 @@ jobs:
 
           gradle = android / 'build.gradle'
           text = gradle.read_text()
-          text = text.replace("versionName gitVersionName", "versionName '1.4-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("versionName gitVersionName", "versionName '1.5-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
           text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
           gradle.write_text(text)
 
@@ -66,8 +66,7 @@ jobs:
                   value = xml.read_text()
               except UnicodeDecodeError:
                   continue
-              value = value.replace('Play!', 'BluPS2')
-              value = value.replace('Play !', 'BluPS2')
+              value = value.replace('Play!', 'BluPS2').replace('Play !', 'BluPS2')
               xml.write_text(value)
 
           strings = android / 'src/main/res/values/strings.xml'
@@ -77,9 +76,7 @@ jobs:
 
           for java in java_dir.rglob('*.java'):
               value = java.read_text()
-              value = value.replace('"Play!"', '"BluPS2"')
-              value = value.replace('"Play! - ', '"BluPS2 - ')
-              value = value.replace('"Play!: ', '"BluPS2: ')
+              value = value.replace('"Play!"', '"BluPS2"').replace('"Play! - ', '"BluPS2 - ').replace('"Play!: ', '"BluPS2: ')
               java.write_text(value)
 
           res_xml = android / 'src/main/res/xml'
@@ -93,12 +90,12 @@ jobs:
               text = text[:insert] + '\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />' + text[insert:]
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n', '', 1)
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n', '', 1)
-          additions = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2AppSettingsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<provider\n\t\t\tandroid:name="androidx.core.content.FileProvider"\n\t\t\tandroid:authorities="${applicationId}.blups2files"\n\t\t\tandroid:exported="false"\n\t\t\tandroid:grantUriPermissions="true">\n\t\t\t<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/blups2_file_paths" />\n\t\t</provider>\n'''
+          additions = '''\n\t\t<activity android:name=".BluPs2SplashActivity" android:exported="true" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2AppSettingsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.blups2files" android:exported="false" android:grantUriPermissions="true">\n\t\t\t<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/blups2_file_paths" />\n\t\t</provider>\n'''
           text = text.replace('    </application>', additions + '    </application>', 1)
           manifest.write_text(text)
           PY
 
-      - name: Build ARM64 BluPS2 1.4 Alpha APK
+      - name: Build ARM64 BluPS2 1.5 Alpha APK
         working-directory: play-core/build_android
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/29.0.14206865
@@ -106,18 +103,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Prepare BluPS2 1.4 Alpha APK
+      - name: Prepare BluPS2 1.5 Alpha APK
         run: |
           APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
           test -n "$APK"
-          cp "$APK" BluPS2-1.4-Alpha-arm64.apk
-          sha256sum BluPS2-1.4-Alpha-arm64.apk > BluPS2-1.4-Alpha-arm64.apk.sha256
+          cp "$APK" BluPS2-1.5-Alpha-arm64.apk
+          sha256sum BluPS2-1.5-Alpha-arm64.apk > BluPS2-1.5-Alpha-arm64.apk.sha256
 
-      - name: Upload BluPS2 1.4 Alpha
+      - name: Upload BluPS2 1.5 Alpha
         uses: actions/upload-artifact@v4
         with:
-          name: BluPS2-1.4-Alpha-arm64
+          name: BluPS2-1.5-Alpha-arm64
           path: |
-            BluPS2-1.4-Alpha-arm64.apk
-            BluPS2-1.4-Alpha-arm64.apk.sha256
+            BluPS2-1.5-Alpha-arm64.apk
+            BluPS2-1.5-Alpha-arm64.apk.sha256
           if-no-files-found: error
