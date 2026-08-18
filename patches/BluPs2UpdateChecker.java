@@ -33,7 +33,7 @@ final class BluPs2UpdateChecker {
     private static final String CURRENT = "1.3";
     private static final String API = "https://api.github.com/repos/maccabluu/BluPS2/releases/latest";
     private static final long COOLDOWN = 15L * 60L * 1000L;
-    private static final Pattern VERSION = Pattern.compile("^v?(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:-public-alpha)?$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern VERSION = Pattern.compile("^v?(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:-(?:public-)?alpha)?$", Pattern.CASE_INSENSITIVE);
 
     private BluPs2UpdateChecker() {}
 
@@ -54,7 +54,7 @@ final class BluPs2UpdateChecker {
                 if(release.optBoolean("draft", false)) return;
                 String tag = release.optString("tag_name", "");
                 if(!VERSION.matcher(tag).matches() || compare(tag, CURRENT) <= 0) {
-                    if(manual) toast(a, "BluPS2 1.3 is up to date.");
+                    if(manual) toast(a, "BluPS2 1.3 Alpha is up to date.");
                     return;
                 }
                 String notes = release.optString("body", "No release notes supplied.");
