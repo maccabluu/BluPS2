@@ -1,4 +1,4 @@
-name: Build BluPS2 Public Alpha 1.0
+name: Build BluPS2 1.3
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
         run: |
           git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
 
-      - name: Apply BluPS2 UI, branding and tools
+      - name: Apply BluPS2 1.3 UI, library and updater
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -42,16 +42,25 @@ jobs:
           android = root / 'build_android'
           java_dir = root / 'Source/ui_android/java/com/virtualapplications/play'
 
-          for name in ['DeviceTelemetry.java', 'BluPs2DashboardView.java', 'BluPs2SplashActivity.java', 'BluPs2ProfilesActivity.java', 'BluPs2HomeActivity.java', 'BluPs2ToolsActivity.java', 'BluPs2LibraryActivity.java']:
+          for name in [
+              'DeviceTelemetry.java',
+              'BluPs2DashboardView.java',
+              'BluPs2SplashActivity.java',
+              'BluPs2ProfilesActivity.java',
+              'BluPs2HomeActivity.java',
+              'BluPs2ToolsActivity.java',
+              'BluPs2LibraryActivity.java',
+              'BluPs2AppSettingsActivity.java',
+              'BluPs2UpdateChecker.java'
+          ]:
               shutil.copy2(Path('patches') / name, java_dir / name)
 
           gradle = android / 'build.gradle'
           text = gradle.read_text()
-          text = text.replace("versionName gitVersionName", "versionName '1.0-public-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("versionName gitVersionName", "versionName '1.3'\n\t\tapplicationId 'com.blustudio.blups2'")
           text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
           gradle.write_text(text)
 
-          # Replace upstream-facing branding shown in Android menus and titles.
           for xml in (android / 'src/main/res').rglob('*.xml'):
               try:
                   value = xml.read_text()
@@ -66,7 +75,6 @@ jobs:
           text = re.sub(r'(<string\s+name="app_name"[^>]*>).*?(</string>)', r'\1BluPS2\2', text, count=1)
           strings.write_text(text)
 
-          # Patch simple hard-coded Android UI titles without touching native core identifiers.
           for java in java_dir.rglob('*.java'):
               value = java.read_text()
               value = value.replace('"Play!"', '"BluPS2"')
@@ -74,16 +82,24 @@ jobs:
               value = value.replace('"Play!: ', '"BluPS2: ')
               java.write_text(value)
 
+          res_xml = android / 'src/main/res/xml'
+          res_xml.mkdir(parents=True, exist_ok=True)
+          (res_xml / 'blups2_file_paths.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>\n<paths xmlns:android="http://schemas.android.com/apk/res/android">\n    <external-files-path name="downloads" path="Download/" />\n</paths>\n''')
+
           manifest = android / 'src/main/AndroidManifest.xml'
           text = manifest.read_text()
+          if 'android.permission.INTERNET' not in text:
+              text = text.replace('<manifest', '<manifest', 1)
+              insert = text.find('>') + 1
+              text = text[:insert] + '\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />' + text[insert:]
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n', '', 1)
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n', '', 1)
-          splash = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n'''
-          text = text.replace('    </application>', splash + '    </application>', 1)
+          additions = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2AppSettingsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<provider\n\t\t\tandroid:name="androidx.core.content.FileProvider"\n\t\t\tandroid:authorities="${applicationId}.blups2files"\n\t\t\tandroid:exported="false"\n\t\t\tandroid:grantUriPermissions="true">\n\t\t\t<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/blups2_file_paths" />\n\t\t</provider>\n'''
+          text = text.replace('    </application>', additions + '    </application>', 1)
           manifest.write_text(text)
           PY
 
-      - name: Build ARM64 BluPS2 APK with PS2 core
+      - name: Build ARM64 BluPS2 1.3 APK
         working-directory: play-core/build_android
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/29.0.14206865
@@ -91,15 +107,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Prepare public APK
+      - name: Prepare BluPS2 1.3 APK
         run: |
           APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
           test -n "$APK"
-          cp "$APK" BluPS2-Public-Alpha-1.0-UI-Fix-arm64.apk
+          cp "$APK" BluPS2-1.3-arm64.apk
+          sha256sum BluPS2-1.3-arm64.apk > BluPS2-1.3-arm64.apk.sha256
 
-      - name: Upload BluPS2 fixed APK
+      - name: Upload BluPS2 1.3
         uses: actions/upload-artifact@v4
         with:
-          name: BluPS2-Public-Alpha-1.0-UI-Fix-arm64
-          path: BluPS2-Public-Alpha-1.0-UI-Fix-arm64.apk
+          name: BluPS2-1.3-arm64
+          path: |
+            BluPS2-1.3-arm64.apk
+            BluPS2-1.3-arm64.apk.sha256
           if-no-files-found: error
