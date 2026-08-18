@@ -1,42 +1,55 @@
-# BluPS2 1.3 Alpha
+# BluPS2 1.4 Alpha
 
 BluPS2 is an experimental PlayStation 2 emulator project for ARM64 Android devices. It combines a custom blue handheld-focused interface with the open-source Play! PS2 emulation core.
 
-> Current release: **BluPS2 1.3 Alpha**
+> Current release: **BluPS2 1.4 Alpha**
 >
-> Release tag: `v1.3-alpha`
+> Release tag: `v1.4-alpha`
 
 ## Download
 
 Download the latest APK from the GitHub Releases section:
 
-**BluPS2-1.3-Alpha-arm64.apk**
+**BluPS2-1.4-Alpha-arm64.apk**
 
 A matching SHA-256 file is published alongside the APK for update verification.
 
-## What is new in 1.3 Alpha
+## What is new in 1.4 Alpha
 
-- Built-in update checker using the official BluPS2 GitHub Releases feed
-- Automatic update checks after launch with a 15-minute cooldown
-- Manual **Check for updates** option from App Settings
-- Update Now, What's New and Later choices when a newer release is available
+- New photo-inspired handheld library interface
+- Left-side navigation panel
+- Library shortcut
+- Boot BIOS shortcut
+- RetroAchievements shortcut
+- Settings shortcut
+- Setup / Change Folders shortcut
+- Horizontal PS2 cover-style game library
+- Game titles shown with library entries
+- Blue gradient interface
+- Battery information in the handheld interface
+- Refresh library control
+- Grid and list-style controls
+- More-options menu
+- Improved spacing for handheld displays
+- Horizontal scrolling for larger libraries
+- Selected-game highlighting
+- Press a game entry to launch through the PS2 emulation core
+- Add Game File
+- Add Game Folder
+- Scan Library
+- Internal storage and microSD access through Android's storage picker
+- Large game images remain in their original storage location
+- Built-in GitHub release update checks
+- Automatic update checks with a 15-minute cooldown
+- Manual Check for updates option
 - SHA-256 verification when a matching checksum file is supplied
 - Android Package Installer handles final update confirmation
-- New Add Game File option
-- New Add Game Folder option
-- Scan Library option
-- Game files stay in their original internal storage or microSD location
-- Updated BluPS2 Library screen
-- BluPS2 branding fixes across the Android interface
-- Improved handheld layout and spacing
-- Reduced UI overlap on smaller screens
 
 ## Main features
 
 - PS2 emulation powered by the Play! core
 - ARM64 Android build
-- BluPS2 blue game-library interface
-- Recent and Favorites sections
+- BluPS2 handheld game-library interface
 - Profiles
 - Controller settings shortcut
 - Controller vibration test
@@ -49,7 +62,7 @@ A matching SHA-256 file is published alongside the APK for update verification.
 
 ## Adding games
 
-Open the BluPS2 Library and press **+** or **Add Games**.
+Open the BluPS2 Library and use **+ Add Game**, **Add Game Folder**, or **Setup / Change Folders**.
 
 Choose a supported PS2 game file or select a folder containing legal backups you own. BluPS2 uses Android's storage picker, so compatible internal storage and microSD locations are available where Android exposes them.
 
@@ -63,7 +76,7 @@ BluPS2 checks the official GitHub Releases feed after launch. Automatic checks u
 
 Open **Settings > App > Check for updates** to run a manual check immediately.
 
-When a genuinely newer BluPS2 release is available, the app offers:
+When a newer BluPS2 release is available, the app offers:
 
 - **Update now** to download the new APK
 - **What's new** to read the release notes
@@ -74,7 +87,7 @@ When a matching SHA-256 file is supplied with the release, BluPS2 verifies the d
 ## Installation
 
 1. Open the latest BluPS2 release on GitHub.
-2. Download `BluPS2-1.3-Alpha-arm64.apk`.
+2. Download `BluPS2-1.4-Alpha-arm64.apk`.
 3. Install the APK on an ARM64 Android device.
 4. Open BluPS2.
 5. Add your own legally dumped PS2 games through the Library.
@@ -83,7 +96,7 @@ Android might ask for permission to install apps from your browser or file manag
 
 ## Alpha status
 
-BluPS2 1.3 Alpha is early testing software. Game compatibility, graphics, audio, controls and performance vary between games and devices.
+BluPS2 1.4 Alpha is early testing software. Game compatibility, graphics, audio, controls and performance vary between games and devices.
 
 A 60 FPS target does not guarantee a game will run at 60 FPS. Actual performance depends on the game, Android device and emulation-core compatibility.
 
@@ -93,6 +106,8 @@ A 60 FPS target does not guarantee a game will run at 60 FPS. Actual performance
 - Some games may have graphics or audio problems
 - Controller behaviour may vary between devices
 - Device temperature information depends on sensors exposed by Android
+- Cover artwork and library metadata support are still being developed
+- RetroAchievements integration is still experimental
 - The interface and settings are still being developed
 
 ## Legal
@@ -120,8 +135,8 @@ Please use GitHub Issues for reproducible problems. Include:
 
 ## Current version
 
-**BluPS2 1.3 Alpha**
+**BluPS2 1.4 Alpha**
 
-Tag: `v1.3-alpha`
+Tag: `v1.4-alpha`
 
-APK: `BluPS2-1.3-Alpha-arm64.apk`
+APK: `BluPS2-1.4-Alpha-arm64.apk`
