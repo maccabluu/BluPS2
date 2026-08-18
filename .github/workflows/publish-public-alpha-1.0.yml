@@ -1,4 +1,4 @@
-name: Publish BluPS2 1.4 Alpha
+name: Publish BluPS2 1.5 Alpha
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
         run: |
           git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/jpd002/Play-.git play-core
 
-      - name: Apply BluPS2 1.4 Alpha UI, library and updater
+      - name: Apply BluPS2 1.5 Alpha files
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -47,21 +47,15 @@ jobs:
           java_dir = root / 'Source/ui_android/java/com/virtualapplications/play'
 
           for name in [
-              'DeviceTelemetry.java',
-              'BluPs2DashboardView.java',
-              'BluPs2SplashActivity.java',
-              'BluPs2ProfilesActivity.java',
-              'BluPs2HomeActivity.java',
-              'BluPs2ToolsActivity.java',
-              'BluPs2LibraryActivity.java',
-              'BluPs2AppSettingsActivity.java',
-              'BluPs2UpdateChecker.java'
+              'DeviceTelemetry.java', 'BluPs2DashboardView.java', 'BluPs2SplashActivity.java',
+              'BluPs2ProfilesActivity.java', 'BluPs2HomeActivity.java', 'BluPs2ToolsActivity.java',
+              'BluPs2LibraryActivity.java', 'BluPs2AppSettingsActivity.java', 'BluPs2UpdateChecker.java'
           ]:
               shutil.copy2(Path('patches') / name, java_dir / name)
 
           gradle = android / 'build.gradle'
           text = gradle.read_text()
-          text = text.replace("versionName gitVersionName", "versionName '1.4-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
+          text = text.replace("versionName gitVersionName", "versionName '1.5-alpha'\n\t\tapplicationId 'com.blustudio.blups2'")
           text = text.replace("abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a'", "abiFilters 'arm64-v8a'")
           gradle.write_text(text)
 
@@ -70,8 +64,7 @@ jobs:
                   value = xml.read_text()
               except UnicodeDecodeError:
                   continue
-              value = value.replace('Play!', 'BluPS2')
-              value = value.replace('Play !', 'BluPS2')
+              value = value.replace('Play!', 'BluPS2').replace('Play !', 'BluPS2')
               xml.write_text(value)
 
           strings = android / 'src/main/res/values/strings.xml'
@@ -81,9 +74,7 @@ jobs:
 
           for java in java_dir.rglob('*.java'):
               value = java.read_text()
-              value = value.replace('"Play!"', '"BluPS2"')
-              value = value.replace('"Play! - ', '"BluPS2 - ')
-              value = value.replace('"Play!: ', '"BluPS2: ')
+              value = value.replace('"Play!"', '"BluPS2"').replace('"Play! - ', '"BluPS2 - ').replace('"Play!: ', '"BluPS2: ')
               java.write_text(value)
 
           res_xml = android / 'src/main/res/xml'
@@ -97,12 +88,12 @@ jobs:
               text = text[:insert] + '\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />' + text[insert:]
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n', '', 1)
           text = text.replace('\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n', '', 1)
-          additions = '''\n\t\t<activity\n\t\t\tandroid:name=".BluPs2SplashActivity"\n\t\t\tandroid:exported="true"\n\t\t\tandroid:screenOrientation="sensorLandscape"\n\t\t\tandroid:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2AppSettingsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<provider\n\t\t\tandroid:name="androidx.core.content.FileProvider"\n\t\t\tandroid:authorities="${applicationId}.blups2files"\n\t\t\tandroid:exported="false"\n\t\t\tandroid:grantUriPermissions="true">\n\t\t\t<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/blups2_file_paths" />\n\t\t</provider>\n'''
+          additions = '''\n\t\t<activity android:name=".BluPs2SplashActivity" android:exported="true" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">\n\t\t\t<intent-filter>\n\t\t\t\t<action android:name="android.intent.action.MAIN" />\n\t\t\t\t<category android:name="android.intent.category.LAUNCHER" />\n\t\t\t\t<category android:name="android.intent.category.LEANBACK_LAUNCHER" />\n\t\t\t</intent-filter>\n\t\t</activity>\n\t\t<activity android:name=".BluPs2HomeActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2LibraryActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2ProfilesActivity" android:screenOrientation="sensorLandscape" />\n\t\t<activity android:name=".BluPs2ToolsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<activity android:name=".BluPs2AppSettingsActivity" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />\n\t\t<provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.blups2files" android:exported="false" android:grantUriPermissions="true">\n\t\t\t<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/blups2_file_paths" />\n\t\t</provider>\n'''
           text = text.replace('    </application>', additions + '    </application>', 1)
           manifest.write_text(text)
           PY
 
-      - name: Build ARM64 BluPS2 1.4 Alpha APK
+      - name: Build BluPS2 1.5 Alpha APK
         working-directory: play-core/build_android
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/29.0.14206865
@@ -110,63 +101,50 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Prepare BluPS2 1.4 Alpha release files
+      - name: Prepare release files
         run: |
           APK=$(find play-core/build_android/build/outputs/apk/debug -name '*.apk' | head -n 1)
           test -n "$APK"
-          cp "$APK" BluPS2-1.4-Alpha-arm64.apk
-          sha256sum BluPS2-1.4-Alpha-arm64.apk > BluPS2-1.4-Alpha-arm64.apk.sha256
+          cp "$APK" BluPS2-1.5-Alpha-arm64.apk
+          sha256sum BluPS2-1.5-Alpha-arm64.apk > BluPS2-1.5-Alpha-arm64.apk.sha256
 
-      - name: Write BluPS2 1.4 Alpha release notes
+      - name: Write release notes
         run: |
-          cat > RELEASE_NOTES_1.4_ALPHA.md <<'EOF'
-          # BluPS2 1.4 Alpha
+          cat > RELEASE_NOTES_1.5_ALPHA.md <<'EOF'
+          # BluPS2 1.5 Alpha
 
-          BluPS2 1.4 Alpha is an early public testing update for ARM64 Android devices.
+          BluPS2 1.5 Alpha introduces a complete handheld UI redesign.
 
-          New in 1.4 Alpha:
-          - New handheld library layout inspired by the supplied reference design
-          - Left-side navigation panel
-          - Library shortcut
-          - Boot BIOS shortcut
-          - RetroAchievements shortcut
-          - Settings shortcut
-          - Setup / Change Folders shortcut
+          New in 1.5 Alpha:
+          - BluBox-style left navigation
+          - Light library area with dark blue navigation panel
+          - Clickable Library, Boot BIOS, RetroAchievements, Settings, Setup / Change Folders and About buttons
+          - Clickable Refresh, Add Game, Grid/List View and More controls
+          - Clickable profile and handheld device panels
           - Horizontal PS2 cover-style library
-          - Game titles shown with library entries
-          - Blue gradient interface
-          - Battery information in the handheld interface
-          - Refresh library control
-          - Grid and list-style controls
-          - More-options menu
-          - Improved handheld spacing and scrolling
-          - Selected-game highlighting
-          - Launch games from the library through the PS2 core
-          - Add Game File, Add Game Folder and Scan Library options
-          - Internal storage and microSD support through Android's storage picker
-          - Built-in GitHub release updater with 15-minute automatic-check cooldown
-          - Manual Check for updates option
-          - APK SHA-256 verification when a matching checksum is supplied
-          - Performance Hub, battery, temperature, thermal status, profiles and controller shortcuts
+          - Add Game, Recent, Favorites, Homebrew and Library Scan cards
+          - Controller-style footer hints
+          - Internal storage and microSD folder access
+          - Existing built-in updater, SHA-256 checks and performance tools retained
 
-          BluPS2 is Alpha software. Compatibility, graphics, audio, controls and performance differ between PS2 titles and Android devices.
+          This is Alpha software. Compatibility and performance vary by PS2 title and Android device.
 
-          Use PS2 game backups you are legally entitled to use. BluPS2 does not include copyrighted games or Sony system software.
+          Use only PS2 game files you are legally entitled to use. BluPS2 does not include copyrighted games or Sony system software.
 
           BluPS2 uses the open-source Play! PS2 emulator core by jpd002 and contributors under the BSD 2-Clause licence.
           EOF
 
-      - name: Publish BluPS2 1.4 Alpha GitHub Release
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v1.4-alpha >/dev/null 2>&1; then
-            gh release upload v1.4-alpha BluPS2-1.4-Alpha-arm64.apk BluPS2-1.4-Alpha-arm64.apk.sha256 --clobber
-            gh release edit v1.4-alpha --title "BluPS2 1.4 Alpha" --notes-file RELEASE_NOTES_1.4_ALPHA.md --latest
+          if gh release view v1.5-alpha >/dev/null 2>&1; then
+            gh release upload v1.5-alpha BluPS2-1.5-Alpha-arm64.apk BluPS2-1.5-Alpha-arm64.apk.sha256 --clobber
+            gh release edit v1.5-alpha --title "BluPS2 1.5 Alpha" --notes-file RELEASE_NOTES_1.5_ALPHA.md --latest
           else
-            gh release create v1.4-alpha BluPS2-1.4-Alpha-arm64.apk BluPS2-1.4-Alpha-arm64.apk.sha256 \
-              --title "BluPS2 1.4 Alpha" \
-              --notes-file RELEASE_NOTES_1.4_ALPHA.md \
+            gh release create v1.5-alpha BluPS2-1.5-Alpha-arm64.apk BluPS2-1.5-Alpha-arm64.apk.sha256 \
+              --title "BluPS2 1.5 Alpha" \
+              --notes-file RELEASE_NOTES_1.5_ALPHA.md \
               --target "$GITHUB_SHA" \
               --latest
           fi
